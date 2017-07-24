@@ -1,11 +1,16 @@
-Ruby = { }
-Ruby.Version = 0.1
+Ruby = { };
+Ruby.Version = 0.1;
 
-RUBY_DEBUG = true
+local RubySettings = { };
+RubySettings.Enabled = true;
+
+RUBY_DEBUG = false;
+
 
 function Ruby.Debug( msg )
     if RUBY_DEBUG then Ruby.Print( msg ) end
 end
+
 
 function Ruby.Print( text )
     if( DEFAULT_CHAT_FRAME ) then
@@ -15,24 +20,72 @@ function Ruby.Print( text )
     end
 end
 
+
+function Ruby:RegisterForEvents()
+    --RubyFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
+	--RubyFrame:RegisterEvent("VARIABLES_LOADED");
+    RubyFrame:RegisterEvent("PLAYER_REGEN_ENABLED");
+end
+
+
+function Ruby:UnregisterForEvents()
+    RubyFrame:UnregisterEvent("PLAYER_REGEN_ENABLED");
+end
+
+
+function Ruby:SetEnabled( enabled )
+    Ruby.Debug("SetEnabled called with " .. tostring( enabled ) .. " parameter");
+    
+    RubySettings.Enabled = enabled;
+    Ruby.Print("Ruby is now " .. (RubySettings.Enabled and "enabled." or "disabled.") );
+end
+
+
+function Ruby:ProcessSlashCommand( msg )
+    Ruby.Debug("ProcessSlashCommand called with msg parameter " .. tostring( msg ) .. " parameter");
+    
+    --TODO: print usage
+    if not msg or msg == "" then return end
+    
+    --pattern matching that skips leading whitespace and whitespace between cmd and args
+    --any whitespace at end of args is retained
+    local i, j, cmd, args = string.find(msg, "%s?(%w+)%s?(.*)")
+    Ruby.Debug("command message parsed. i = " .. tostring( i ) .. " j = " .. tostring( j ) .. " cmd = " .. tostring( cmd ) .. " args = " .. tostring( args ));
+    
+    if cmd == "enable" then
+        Ruby:SetEnabled( true );
+        Ruby:RegisterForEvents();
+    elseif cmd == "disable" then
+        Ruby:SetEnabled( false );
+        Ruby:UnregisterForEvents();
+    else
+        Ruby.Print("Command "..cmd.." not understood.");
+    end
+end
+
+
 function Ruby:OnRubyLoad()
     Ruby.Debug("OnRubyLoad called");
     
     Ruby.Print("version "..Ruby.Version.." loaded.");
 
-	--RubyFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-	--RubyFrame:RegisterEvent("VARIABLES_LOADED")
-    RubyFrame:RegisterEvent("PLAYER_REGEN_ENABLED");
+	Ruby:RegisterForEvents();
     
     SLASH_RUBY1 = "/ruby";
-    SlashCmdList["RUBY"] = function(msg)
-        Ruby.Print("you have passed the command \""..msg.."\"");
+    SlashCmdList["RUBY"] = function( msg )
+        Ruby:ProcessSlashCommand( msg );
     end
 
 end
 
+
 function Ruby:OnRubyEvent( event )
-    Ruby.Debug("OnRubyEvent called");
+    Ruby.Debug("OnRubyEvent called with event parameter: " .. tostring( event ));
+    
+    if not RubySettings.Enabled then
+        Ruby.Debug("Ruby is disabled.");
+        return;
+    end
     
     --interestingly, the PLAYER_LEAVE_COMBAT event is not fired when a player runs from combat.
     --PLAYER_REGEN_ENABLED is fired whenever a character leaves combat for any reason, so we will use this for UI control.
