@@ -1,5 +1,6 @@
 ## Interface: 12100
 ## Title: Ruby
 ## Notes: this addon will periodically remind you to conjure mana rubies and other mana gems when not in combat
+## SavedVariablesPerCharacter: RubySettings
 Ruby.lua
 Ruby.xml

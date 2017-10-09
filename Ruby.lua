@@ -1,8 +1,5 @@
 Ruby = { };
-Ruby.Version = 0.1;
-
-local RubySettings = { };
-RubySettings.Enabled = true;
+Ruby.Version = 0.2;
 
 RUBY_DEBUG = false;
 
@@ -64,11 +61,15 @@ end
 
 
 function Ruby:OnRubyLoad()
-    Ruby.Debug("OnRubyLoad called");
+    Ruby:Debug("OnRubyLoad called");
     
-    Ruby.Print("version "..Ruby.Version.." loaded.");
+	-- Create and setup saved variables
+	if not RubySettings then
+        RubySettings = {};
+        RubySettings.IsEnabled = true;
+    end
+    
     Ruby:Print("version "..Ruby.Version.." loaded.");
-    Ruby:Debug("Ruby is "..(RubySettings.IsEnabled and "enabled" or "disabled").." for this character.");
 
 	Ruby:RegisterForEvents();
     
@@ -83,8 +84,8 @@ end
 function Ruby:OnRubyEvent( event )
     Ruby:Debug("OnRubyEvent called with event parameter: " .. tostring( event ));
     
-    if not RubySettings.Enabled then
-        Ruby.Debug("Ruby is disabled.");
+    if not RubySettings.IsEnabled then
+        Ruby:Debug("Ruby is disabled.");
         return;
     end
     
